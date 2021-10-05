@@ -58,7 +58,6 @@ Now let's see it in action by using numpy to define a function `neg_norm` that t
 begin
 	py"""
 	import numpy as np
-	import juliet
 	
 	def neg_norm(x, y):
 		return -np.linalg.norm([x, y])
