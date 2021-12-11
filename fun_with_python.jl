@@ -28,7 +28,7 @@ using PlutoUI
 md"""
 # Fun with 🐍
 
-Interfacing with Python is seamless, thanks to [`PyCall.jl`](https://github.com/JuliaPy/PyCall.jl). This package defines the string macro `py""`, which we can use to work with native Python code directly in Julia. There is [*a bunch*](https://github.com/JuliaPy/PyCall.jl#readme) that we can configure here, but in this notebook we will focus on using self-contained environments to explore interfacing with Python.
+Interfacing with Python is seamless, thanks to [`PyCall.jl`](https://github.com/JuliaPy/PyCall.jl). There is [*a bunch*](https://github.com/JuliaPy/PyCall.jl#readme) that we can configure here, but in this notebook we will focus on using self-contained environments to explore interfacing with Python.
 
 $(TableOfContents())
 """
@@ -36,6 +36,8 @@ $(TableOfContents())
 # ╔═╡ 5b1b5ad1-b275-449b-b4bd-f0105cd17830
 md"""
 ## Setting up an enviroment for the first time
+
+`PyCall.jl` automatically comes with `Conda.jl`, which uses `conda` for package installation and environment management. By default, everything is installed to a global environment in `~/.julia/conda/3`. We are responsible scientists though, and will create our own environment by passing it to `Conda.add` before installing our packages:
 """
 
 # ╔═╡ ca74eea8-26de-4ecf-9e08-75658a3ae56a
@@ -66,7 +68,50 @@ Great, let's start using them!
 md"""
 ## Working with scripts
 
-Now let's see it in action by using `numpy` to define a function `neg_norm` that takes the inputs ``(x, y)`` and returns the negative of its vector norm:
+One common workflow in `PyCall.jl` is to write Python code verbatim in a string, and then execute that string using the Python interpreter. This is accomplished with the exported string macros `py"<script here>"` and `py\"""<script here>\"""` for single and multi-line Python scripts, respectively (technically [eval](https://docs.python.org/3/library/functions.html#eval) and [exec](https://docs.python.org/3/library/functions.html#exec)). When possible, `PyCall.jl` will even convert the Python objects to their native Julia equivalents!
+"""
+
+# ╔═╡ 89f64c88-ed8f-47c6-b500-ab6898f10459
+d = py"{'a': 1, 'b': 2, 'c': 3}"
+
+# ╔═╡ 2dd9d06d-a5a0-476f-8c83-8bfae12d5594
+py"[i for i in range(4)]"
+
+# ╔═╡ bc08bcd5-46a8-40ae-af8c-ff865a9a1543
+md"""
+A very useful pattern is to write Python functions inside of the multi-line `py` strings, and then wrap it inside of a Julia function:
+"""
+
+# ╔═╡ c6b96207-f98d-4bdb-a6be-8d146f0fdeca
+begin
+	py"""
+	def dict_sum_py(d):
+		sum = 0
+		for (k, v) in d.items():
+			sum += v
+		return sum
+	"""
+	dict_sum(d) = py"dict_sum_py"(d)
+end
+
+# ╔═╡ 5ed4bbd4-08ec-41bc-abdd-42c42d24daff
+md"""
+Now this function -- that was originally defined in Python -- can use Pluto's reactivity, just like any other Julia function 🌈
+"""
+
+# ╔═╡ 4595f4f8-3aad-4095-845f-74cd9922c22b
+dict_sum(d)
+
+# ╔═╡ 2ed0268e-fb43-4ad3-bcbd-7f66ac796f7f
+md"""
+!!! tip
+
+	Try modifying `d` to see this for yourself!
+"""
+
+# ╔═╡ 5bd935db-1404-4171-9355-fadf8c9f5ae3
+md"""
+Importing packages also work exactly as we would expect. Let's see this in action by using `numpy` to define a toy function `neg_norm` that takes the inputs ``(x, y)`` and returns the negative of its vector norm:
 
 ```math
 	-\sqrt{x^2 + y^2} \quad.
@@ -87,65 +132,26 @@ end
 # ╔═╡ bb7aaa9e-1b22-4706-a582-dcb090c85b99
 neg_norm(3, 4)
 
-# ╔═╡ 3c358fae-9623-4687-bd23-b63593f2bac9
-md"""
-!!! note
-
-	We are using the multi-line version of `py""` here so that we can wrap whole blocks of Python code, instead of just single lines. 
-"""
-
 # ╔═╡ 8d512b4c-a0ad-453f-8b51-c09cc63c6a49
 md"""
-Looks good! Now let's try accessing the `_rsky` module from `batman`:
+Package imports should persist in other cells as well:
 """
 
-# ╔═╡ 97b525a0-cbca-4ca7-a415-23a8090eb7ac
+# ╔═╡ 3c727a15-b417-4115-acea-203a402deb12
 begin
 	py"""
-	import numpy as np
-	from batman import _rsky
-		
-	# Compute distance between centers
-	def r_batman(t_0, period, aR_star, incl, ecc, omega):
-		return _rsky._rsky(
-		np.linspace(0, period, 500),
-		t_0,
-		period,
-		aR_star,
-		incl,
-		ecc,
-		omega,
-		1,
-		1,
-	)
+	def neg_norm2(x, y):
+		return -2.0*np.linalg.norm([x, y])
 	"""
-	r_batman(;t_0, period, aR_star, incl, ecc, omega) = py"r_batman"(
-		t_0=t_0, period=period, aR_star=aR_star, incl=incl, ecc=ecc, omega=omega
-	)
+	neg_norm2(x, y) = py"neg_norm2"(x, y)
 end
 
-# ╔═╡ abd5ec08-7a8c-45c8-89f6-65d5b34a42cf
+# ╔═╡ 0fd5457a-e541-4b10-9df9-735c6ecb01db
+neg_norm2(3, 4)
+
+# ╔═╡ 557b7c94-4bc6-4cb0-ac90-bc863ea729d8
 md"""
-!!! note
-	The `f(;arg1, arg2)` syntax is used to explicitly specify keyword arguments in Julia. Similarly, `f(args...)` is Julia's version of `f(**kwargs)`
-"""
-
-# ╔═╡ 68649e6a-d26d-405f-9754-e7902407f866
-transit_params = (
-	t_0 = 0.0,
-	period = 2.0,
-	aR_star = 7.0,
-	incl = 1.5,
-	ecc = 0.0,
-	omega = 0.0,
-)
-
-# ╔═╡ d212844e-b382-4c89-a0f0-809313d0b8db
-r = r_batman(;transit_params...)
-
-# ╔═╡ 4cb0f5a5-d448-4d69-a92a-8f044c07d1a2
-md"""
-Not bad! We can also interface with python objects/modules/libraries directly:
+Looks good!
 """
 
 # ╔═╡ 04b5e2f6-ae95-40eb-87e6-0e45dbf1aed3
@@ -386,22 +392,27 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 
 # ╔═╡ Cell order:
 # ╟─7c4c556c-7399-4585-a9c4-428734b9a9b2
-# ╠═5b1b5ad1-b275-449b-b4bd-f0105cd17830
+# ╟─5b1b5ad1-b275-449b-b4bd-f0105cd17830
 # ╠═ab57c20d-542c-4079-8d7d-21e523f7bdaa
 # ╟─ca74eea8-26de-4ecf-9e08-75658a3ae56a
 # ╟─573962a7-ddfd-4c53-9c16-9ff1175065a2
 # ╠═2bf423ab-3b20-4952-9341-f3b3b23092aa
 # ╟─f9bc4f88-4963-4328-9ad7-244e0b8ab2ea
 # ╟─793a51ba-f589-42f4-b562-bfcc0291243d
+# ╠═89f64c88-ed8f-47c6-b500-ab6898f10459
+# ╠═2dd9d06d-a5a0-476f-8c83-8bfae12d5594
+# ╟─bc08bcd5-46a8-40ae-af8c-ff865a9a1543
+# ╠═c6b96207-f98d-4bdb-a6be-8d146f0fdeca
+# ╟─5ed4bbd4-08ec-41bc-abdd-42c42d24daff
+# ╠═4595f4f8-3aad-4095-845f-74cd9922c22b
+# ╟─2ed0268e-fb43-4ad3-bcbd-7f66ac796f7f
+# ╟─5bd935db-1404-4171-9355-fadf8c9f5ae3
 # ╠═2be60363-fed7-4146-ada6-bb287ab94678
 # ╠═bb7aaa9e-1b22-4706-a582-dcb090c85b99
-# ╟─3c358fae-9623-4687-bd23-b63593f2bac9
 # ╟─8d512b4c-a0ad-453f-8b51-c09cc63c6a49
-# ╠═97b525a0-cbca-4ca7-a415-23a8090eb7ac
-# ╟─abd5ec08-7a8c-45c8-89f6-65d5b34a42cf
-# ╠═68649e6a-d26d-405f-9754-e7902407f866
-# ╠═d212844e-b382-4c89-a0f0-809313d0b8db
-# ╟─4cb0f5a5-d448-4d69-a92a-8f044c07d1a2
+# ╠═3c727a15-b417-4115-acea-203a402deb12
+# ╠═0fd5457a-e541-4b10-9df9-735c6ecb01db
+# ╟─557b7c94-4bc6-4cb0-ac90-bc863ea729d8
 # ╠═04b5e2f6-ae95-40eb-87e6-0e45dbf1aed3
 # ╠═a2fc17e4-6f98-4864-b66c-8ee27cb0d509
 # ╠═1b2781b3-6298-43d6-8bd9-8834ab8a5be5
