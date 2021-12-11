@@ -205,6 +205,22 @@ md"""
 - Working with Poetry?
 """
 
+# ╔═╡ 8d8d475f-009a-4e8f-a520-0eeabdf91447
+html"""
+<style>
+body.disable_ui main {
+		max-width : 95%;
+	}
+@media screen and (min-width: 1081px) {
+	body.disable_ui main {
+		margin-left : 10px;
+		max-width : 72%;
+		align-self: flex-start;
+	}
+}
+</style>
+"""
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1161,5 +1177,6 @@ version = "0.9.1+5"
 # ╠═c7222a72-cbff-4915-977c-454d7ad5dcfa
 # ╟─46271b2a-91bc-4bff-84cd-24298070a04e
 # ╟─11a74633-c07a-467c-943a-475e16b51205
+# ╟─8d8d475f-009a-4e8f-a520-0eeabdf91447
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
