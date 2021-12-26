@@ -23,7 +23,7 @@ $(TableOfContents())
 
 # ╔═╡ 30181f53-97e2-4d21-83d2-9394ef64aba2
 md"""
-## Trying it out
+## `pyeval`
 To see how we can start using this package, let's start by creating some simple Python objects:
 """
 
@@ -53,6 +53,14 @@ py_dict["three"]
 # ╔═╡ 5e0919d8-0a02-46fc-92fe-0a5e40d1708c
 py_range[0] # Python's zero-based indexing is also automatically respected
 
+# ╔═╡ 0b3322b5-cd15-49d9-a446-35224a4b7637
+md"""
+!!! tip
+	We recommend passing strings ("") instead of cmds (\`\`) to play nice with Pluto's `ExpressionExplorer`
+ 
+	Related issue?: <https://github.com/fonsp/Pluto.jl/issues/961>
+"""
+
 # ╔═╡ 3359adff-8eb5-4911-a914-047ecf3663fe
 md"""
 PythonCall.jl also provides a function version of `@pyeval` if we would like to do things like string interpolation first:
@@ -64,12 +72,9 @@ let
 	pyeval("[1, 2, 3, $four]", Main)
 end
 
-# ╔═╡ 0b3322b5-cd15-49d9-a446-35224a4b7637
+# ╔═╡ ed066bda-07b4-4c52-9302-15c66cb4e1d8
 md"""
-!!! tip
-	We recommend passing strings ("") instead of cmds (\`\`) to play nice with Pluto's `ExpressionExplorer`
- 
-	Related issue?: <https://github.com/fonsp/Pluto.jl/issues/961>
+More info about the usage for each version is available in the Live docs.
 """
 
 # ╔═╡ a7e24a65-cfa8-4e03-9664-f8f424324917
@@ -80,24 +85,31 @@ To a certain extent, Julia's functions can also operate on these objects automat
 # ╔═╡ 1e94e185-af8c-4796-9358-6a2c15c7fd43
 py_range |> sum
 
-# ╔═╡ 07c516fe-97d1-40ad-bd79-a9c3c379e234
-md"""
-but it is probably best to avoid mixing and matching too much if possible to avoid things like this:
-"""
-
 # ╔═╡ b810a02b-8329-4f51-8cfc-c6920ad1cf5d
 py_range |> collect
 
 # ╔═╡ 40cb6860-7ac6-40ca-8b1f-30360fd6aef7
 md"""
-As an alternative, `PythonCall` makes it very easy to convert these objects to their native Julia counterparts with the `@pyconvert` macro:
+As an alternative, `PythonCall` makes it very easy to convert these objects to their native Julia counterparts with the `@pyconvert`/`pyconvert` macro/function:
 """
 
 # ╔═╡ 57686014-99e8-4733-8f1d-ba80306b9da9
 (@pyconvert StepRange py_range) |> collect
 
 # ╔═╡ 1360029e-76f3-468a-9b2f-d27482bbc525
-pyconvert(StepRange, py_range) |> collect
+pyconvert(Dict, py_dict)
+
+# ╔═╡ fde4db08-e5e1-4e92-b1c7-9a41edb04476
+md"""
+Next, we will take a look at running Python statements.
+"""
+
+# ╔═╡ 71ba808a-ebde-43ad-b264-ccf8e676891a
+md"""
+## `pyexec`
+
+We saw how to run simple Python expressions with `pyeval`. Now we will turn to executing Python statements, which can be used to perform more complex tasks like storing values in variables and defining functions. This is accomplished with `PythonCalls.jl's` `@pyexec`/`pyexec` macro/function, which behave's like Python's [`exec`](https://docs.python.org/3/library/functions.html#exec):
+"""
 
 # ╔═╡ e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 md"""
@@ -145,16 +157,18 @@ So `PythonCall` returns its own Julia type that correspond to the Python object 
 # ╠═15b2d0ab-bc1a-435a-9557-99537d117d91
 # ╠═ffa07e57-7797-4000-8be4-a166895bcc54
 # ╠═5e0919d8-0a02-46fc-92fe-0a5e40d1708c
-# ╠═3359adff-8eb5-4911-a914-047ecf3663fe
-# ╠═6be1822a-d905-4de9-8345-4e160e53ea64
 # ╟─0b3322b5-cd15-49d9-a446-35224a4b7637
+# ╟─3359adff-8eb5-4911-a914-047ecf3663fe
+# ╠═6be1822a-d905-4de9-8345-4e160e53ea64
+# ╟─ed066bda-07b4-4c52-9302-15c66cb4e1d8
 # ╟─a7e24a65-cfa8-4e03-9664-f8f424324917
 # ╠═1e94e185-af8c-4796-9358-6a2c15c7fd43
-# ╠═07c516fe-97d1-40ad-bd79-a9c3c379e234
 # ╠═b810a02b-8329-4f51-8cfc-c6920ad1cf5d
 # ╟─40cb6860-7ac6-40ca-8b1f-30360fd6aef7
 # ╠═57686014-99e8-4733-8f1d-ba80306b9da9
 # ╠═1360029e-76f3-468a-9b2f-d27482bbc525
+# ╟─fde4db08-e5e1-4e92-b1c7-9a41edb04476
+# ╟─71ba808a-ebde-43ad-b264-ccf8e676891a
 # ╠═e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 # ╟─61944f41-4e96-472d-bd0b-9aa3f69dfc4f
 # ╠═0bf45621-7776-403e-b3da-5311a5c30e20
