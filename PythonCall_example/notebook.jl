@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.17.4
+# v0.17.3
 
 using Markdown
 using InteractiveUtils
@@ -10,6 +10,8 @@ begin
 	Pkg.activate(Base.current_project())
 	
 	using PythonCall, CondaPkg, PlutoUI
+
+	#ENV["JULIA_PYTHONCALL_EXE"] = "@PyCall"
 end
 
 # ╔═╡ f150770d-cbcd-4eda-a0a5-b759a21f5b9b
@@ -145,13 +147,16 @@ neg_norm(x, y) = py"neg_norm"(x, y)
 # ╔═╡ 5aa1ba97-d55c-4794-a839-e90effb84bbe
 neg_norm(3, 4)
 
+# ╔═╡ bd7cf5e6-1266-4841-a525-95a85d1bc734
+md"""
+!!! warning "TODO"
+	Don't clobber PyCall.jl's `py`
+"""
+
 # ╔═╡ e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 md"""
 ## Installing packages
-"""
 
-# ╔═╡ 61944f41-4e96-472d-bd0b-9aa3f69dfc4f
-md"""
 We can add Python packages using `CondaPkg` in the following way:
 """
 
@@ -171,14 +176,6 @@ end
 @with_terminal begin
 	CondaPkg.status()
 end
-
-# ╔═╡ c47c1968-828a-4422-997d-39c91b16d176
-x = np.linspace(1, 3, 10)
-
-# ╔═╡ d4e53c87-7f43-4ac8-9c85-0dd2afc4a5c8
-md"""
-So `PythonCall` returns its own Julia type that correspond to the Python object used. The list of corresponding types live here
-"""
 
 # ╔═╡ Cell order:
 # ╟─f150770d-cbcd-4eda-a0a5-b759a21f5b9b
@@ -210,11 +207,9 @@ So `PythonCall` returns its own Julia type that correspond to the Python object 
 # ╠═5b597d2a-2483-4b80-860b-839fa3ddeaec
 # ╠═9c7a5699-1984-4de4-9a09-bbc0527650d7
 # ╠═5aa1ba97-d55c-4794-a839-e90effb84bbe
-# ╠═e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
-# ╟─61944f41-4e96-472d-bd0b-9aa3f69dfc4f
+# ╟─bd7cf5e6-1266-4841-a525-95a85d1bc734
+# ╟─e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 # ╠═0bf45621-7776-403e-b3da-5311a5c30e20
 # ╠═a159c36c-83c8-460e-a7e2-e85c7df8d9da
 # ╠═655674de-56c1-4386-8fda-aa5c95b6271f
-# ╠═c47c1968-828a-4422-997d-39c91b16d176
-# ╠═d4e53c87-7f43-4ac8-9c85-0dd2afc4a5c8
-# ╠═22b67cb0-6687-11ec-1868-bb216a9703f4
+# ╟─22b67cb0-6687-11ec-1868-bb216a9703f4
