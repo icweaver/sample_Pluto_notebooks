@@ -111,6 +111,40 @@ md"""
 We saw how to run simple Python expressions with `pyeval`. Now we will turn to executing Python statements, which can be used to perform more complex tasks like storing values in variables and defining functions. This is accomplished with `PythonCalls.jl's` `@pyexec`/`pyexec` macro/function, which behave's like Python's [`exec`](https://docs.python.org/3/library/functions.html#exec):
 """
 
+# ╔═╡ 193e65ae-c344-4dda-b92b-e0b136eb7581
+@pyexec (x=1, y=2) => "ans = x + y" => ans
+
+# ╔═╡ 0c8e14ef-782d-420b-8906-3a139bacf331
+pyexec(@NamedTuple{ans}, "ans = 1 + 2", Main)
+
+# ╔═╡ 1eccfc11-4ea1-4b79-a688-2644d6d1d0fd
+md"""
+## Combining `pyexec` and `pyeval`
+"""
+
+# ╔═╡ dda0530e-748d-473b-adec-1cf32b091fb7
+macro py_str(s)
+	if '\n' ∈ s || '=' ∈ s
+		pyexec(s, Main)
+	else
+		pyeval(s, Main)
+	end
+end
+
+# ╔═╡ 5b597d2a-2483-4b80-860b-839fa3ddeaec
+py"""
+import numpy as np
+
+def neg_norm(x, y):
+	return -np.linalg.norm((x, y))
+"""
+
+# ╔═╡ 9c7a5699-1984-4de4-9a09-bbc0527650d7
+neg_norm(x, y) = py"neg_norm"(x, y)
+
+# ╔═╡ 5aa1ba97-d55c-4794-a839-e90effb84bbe
+neg_norm(3, 4)
+
 # ╔═╡ e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 md"""
 ## Installing packages
@@ -169,6 +203,13 @@ So `PythonCall` returns its own Julia type that correspond to the Python object 
 # ╠═1360029e-76f3-468a-9b2f-d27482bbc525
 # ╟─fde4db08-e5e1-4e92-b1c7-9a41edb04476
 # ╟─71ba808a-ebde-43ad-b264-ccf8e676891a
+# ╠═193e65ae-c344-4dda-b92b-e0b136eb7581
+# ╠═0c8e14ef-782d-420b-8906-3a139bacf331
+# ╟─1eccfc11-4ea1-4b79-a688-2644d6d1d0fd
+# ╠═dda0530e-748d-473b-adec-1cf32b091fb7
+# ╠═5b597d2a-2483-4b80-860b-839fa3ddeaec
+# ╠═9c7a5699-1984-4de4-9a09-bbc0527650d7
+# ╠═5aa1ba97-d55c-4794-a839-e90effb84bbe
 # ╠═e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 # ╟─61944f41-4e96-472d-bd0b-9aa3f69dfc4f
 # ╠═0bf45621-7776-403e-b3da-5311a5c30e20
