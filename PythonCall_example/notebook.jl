@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.17.3
+# v0.17.5
 
 using Markdown
 using InteractiveUtils
@@ -16,9 +16,15 @@ end
 
 # ╔═╡ f150770d-cbcd-4eda-a0a5-b759a21f5b9b
 md"""
-# A new way to interface with 🐍
+# Fun with 🐍
 
-`PythonCall.jl` vs. `PyCall.jl`
+In this notebook we will showing some useage examples for the new package `PythonCall.jl`. It behaves similarly to the older package `PyCall.jl`, but with a few key differences that make interacting with Python quite nice:
+
+* automatic, project-specific environments for easy reproducibility
+* package management via [micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html) for blazing fast Python package management 🔥
+* easy plot display support
+
+Let's try some things out!
 
 $(TableOfContents())
 """
@@ -31,9 +37,6 @@ To see how we can start using this package, let's start by creating some simple 
 
 # ╔═╡ b1f1706d-da3b-48ae-bed1-4f5fb9e95726
 py_list = @pyeval "[1, 2, 3]"
-
-# ╔═╡ 46e9b23c-07d2-49d9-af7a-6fe094b8e0be
-y = 9
 
 # ╔═╡ fa184670-718c-4e68-8e23-fe6e72a651c5
 py_dict = @pyeval "{'one': 1, 'two': 2, 'three': 3}"
@@ -53,7 +56,7 @@ py_list.append(4); py_list
 py_dict["three"]
 
 # ╔═╡ 5e0919d8-0a02-46fc-92fe-0a5e40d1708c
-py_range[0] # Python's zero-based indexing is also automatically respected
+py_range[0] # Python's zero-based indexing is automatically understood
 
 # ╔═╡ 0b3322b5-cd15-49d9-a446-35224a4b7637
 md"""
@@ -65,7 +68,7 @@ md"""
 
 # ╔═╡ 3359adff-8eb5-4911-a914-047ecf3663fe
 md"""
-PythonCall.jl also provides a function version of `@pyeval` if we would like to do things like string interpolation first:
+`PythonCall.jl` also provides a function version of `@pyeval` if we would like to do things like string interpolation first:
 """
 
 # ╔═╡ 6be1822a-d905-4de9-8345-4e160e53ea64
@@ -122,36 +125,24 @@ pyexec(@NamedTuple{ans}, "ans = 1 + 2", Main)
 # ╔═╡ 1eccfc11-4ea1-4b79-a688-2644d6d1d0fd
 md"""
 ## Combining `pyexec` and `pyeval`
-"""
 
-# ╔═╡ dda0530e-748d-473b-adec-1cf32b091fb7
-macro py_str(s)
-	if '\n' ∈ s || '=' ∈ s
-		pyexec(s, Main)
-	else
-		pyeval(s, Main)
-	end
-end
+We can now compose these ideas to start interacting with full blocks of Python code. Let's try an example using `numpy`s linear algebra modules:
+"""
 
 # ╔═╡ 5b597d2a-2483-4b80-860b-839fa3ddeaec
-py"""
-import numpy as np
-
-def neg_norm(x, y):
-	return -np.linalg.norm((x, y))
-"""
-
-# ╔═╡ 9c7a5699-1984-4de4-9a09-bbc0527650d7
-neg_norm(x, y) = py"neg_norm"(x, y)
+begin
+	@pyexec """
+	global np, neg_norm
+	import numpy as np
+	
+	def neg_norm(x, y):
+		return -np.linalg.norm((x, y))
+	"""
+	neg_norm(x, y) = @pyeval("neg_norm")(x, y)
+end
 
 # ╔═╡ 5aa1ba97-d55c-4794-a839-e90effb84bbe
 neg_norm(3, 4)
-
-# ╔═╡ bd7cf5e6-1266-4841-a525-95a85d1bc734
-md"""
-!!! warning "TODO"
-	Don't clobber PyCall.jl's `py`
-"""
 
 # ╔═╡ e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 md"""
@@ -162,7 +153,7 @@ We can add Python packages using `CondaPkg` in the following way:
 
 # ╔═╡ 0bf45621-7776-403e-b3da-5311a5c30e20
 begin
-	CondaPkg.add("lightkurve")
+	CondaPkg.add.(("lightkurve", "pandas"))
 	CondaPkg.resolve()
 end
 
@@ -181,7 +172,6 @@ end
 # ╟─f150770d-cbcd-4eda-a0a5-b759a21f5b9b
 # ╟─30181f53-97e2-4d21-83d2-9394ef64aba2
 # ╠═b1f1706d-da3b-48ae-bed1-4f5fb9e95726
-# ╠═46e9b23c-07d2-49d9-af7a-6fe094b8e0be
 # ╠═fa184670-718c-4e68-8e23-fe6e72a651c5
 # ╠═53b89008-8ac0-4f20-955d-1d875530f121
 # ╟─81a0a61d-0ff8-4610-915b-3f32a2742f5d
@@ -203,13 +193,10 @@ end
 # ╠═193e65ae-c344-4dda-b92b-e0b136eb7581
 # ╠═0c8e14ef-782d-420b-8906-3a139bacf331
 # ╟─1eccfc11-4ea1-4b79-a688-2644d6d1d0fd
-# ╠═dda0530e-748d-473b-adec-1cf32b091fb7
 # ╠═5b597d2a-2483-4b80-860b-839fa3ddeaec
-# ╠═9c7a5699-1984-4de4-9a09-bbc0527650d7
 # ╠═5aa1ba97-d55c-4794-a839-e90effb84bbe
-# ╟─bd7cf5e6-1266-4841-a525-95a85d1bc734
 # ╟─e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 # ╠═0bf45621-7776-403e-b3da-5311a5c30e20
 # ╠═a159c36c-83c8-460e-a7e2-e85c7df8d9da
 # ╠═655674de-56c1-4386-8fda-aa5c95b6271f
-# ╟─22b67cb0-6687-11ec-1868-bb216a9703f4
+# ╠═22b67cb0-6687-11ec-1868-bb216a9703f4
