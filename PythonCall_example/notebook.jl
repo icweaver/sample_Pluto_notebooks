@@ -10,8 +10,6 @@ begin
 	Pkg.activate(Base.current_project())
 	
 	using PythonCall, CondaPkg, PlutoUI
-
-	#ENV["JULIA_PYTHONCALL_EXE"] = "@PyCall"
 end
 
 # ╔═╡ f150770d-cbcd-4eda-a0a5-b759a21f5b9b
@@ -126,47 +124,72 @@ pyexec(@NamedTuple{ans}, "ans = 1 + 2", Main)
 md"""
 ## Combining `pyexec` and `pyeval`
 
-We can now compose these ideas to start interacting with full blocks of Python code. Let's try an example using `numpy`s linear algebra modules:
+We can now compose these ideas to start interacting with full blocks of Python code:
 """
 
 # ╔═╡ 5b597d2a-2483-4b80-860b-839fa3ddeaec
 begin
 	@pyexec """
-	global np, neg_norm
-	import numpy as np
-	
-	def neg_norm(x, y):
-		return -np.linalg.norm((x, y))
+	global greeting
+	def greeting(name):
+		return f"Hi {name} 👋"
 	"""
-	neg_norm(x, y) = @pyeval("neg_norm")(x, y)
+	greeting(name) = @pyeval("greeting")(name)
 end
 
 # ╔═╡ 5aa1ba97-d55c-4794-a839-e90effb84bbe
-neg_norm(3, 4)
+greeting("Pluto citizen")
 
 # ╔═╡ e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 md"""
-## Installing packages
-
-We can add Python packages using `CondaPkg` in the following way:
+## Using packages
+`PythonCall.jl` has a nice companion package named `CondaPkg.jl`, which we can use to easily install Python packages into an environment in the same directory as this notebook:
 """
 
 # ╔═╡ 0bf45621-7776-403e-b3da-5311a5c30e20
 begin
-	CondaPkg.add.(("lightkurve", "pandas"))
+	CondaPkg.add.(("matplotlib", "numpy"))
 	CondaPkg.resolve()
 end
 
+# ╔═╡ f5d2228c-b45e-4dce-99fb-668f6c50df30
+md"""
+We now use the `@py` macro to import and interact with these packages:
+"""
+
 # ╔═╡ a159c36c-83c8-460e-a7e2-e85c7df8d9da
 @py begin
-	import lightkurve as lk
+	import matplotlib.pyplot as plt
 	import numpy as np
 end
 
-# ╔═╡ 655674de-56c1-4386-8fda-aa5c95b6271f
-@with_terminal begin
-	CondaPkg.status()
+# ╔═╡ c83fdb79-b0d9-4830-b6cf-74d2a669ceed
+let
+	xs = np.random.rand(10, 4, 4)
+	
+	fig, axes = plt.subplots(2, 2, sharex=true, sharey=true)
+	
+	for (ax, x) ∈ zip(axes.flat, xs)
+		ax.plot(x)
+	end
+
+	fig.tight_layout()
+	
+	plt.gcf()
 end
+
+# ╔═╡ 681ece7a-6800-4779-8118-28c3179cd43a
+md"""
+## Environment details
+
+Where is all this stuff being downloaded/run? Let's see!
+"""
+
+# ╔═╡ 655674de-56c1-4386-8fda-aa5c95b6271f
+@with_terminal CondaPkg.status()
+
+# ╔═╡ 9f68d823-64ac-48cc-b35e-b131a0bd5c50
+@with_terminal run(CondaPkg.MicroMamba.cmd(`list`))
 
 # ╔═╡ Cell order:
 # ╟─f150770d-cbcd-4eda-a0a5-b759a21f5b9b
@@ -192,11 +215,15 @@ end
 # ╟─71ba808a-ebde-43ad-b264-ccf8e676891a
 # ╠═193e65ae-c344-4dda-b92b-e0b136eb7581
 # ╠═0c8e14ef-782d-420b-8906-3a139bacf331
-# ╟─1eccfc11-4ea1-4b79-a688-2644d6d1d0fd
+# ╠═1eccfc11-4ea1-4b79-a688-2644d6d1d0fd
 # ╠═5b597d2a-2483-4b80-860b-839fa3ddeaec
 # ╠═5aa1ba97-d55c-4794-a839-e90effb84bbe
 # ╟─e9e6c4e0-6834-4b6b-ac20-ff722f9a5cd9
 # ╠═0bf45621-7776-403e-b3da-5311a5c30e20
+# ╟─f5d2228c-b45e-4dce-99fb-668f6c50df30
 # ╠═a159c36c-83c8-460e-a7e2-e85c7df8d9da
+# ╠═c83fdb79-b0d9-4830-b6cf-74d2a669ceed
+# ╟─681ece7a-6800-4779-8118-28c3179cd43a
 # ╠═655674de-56c1-4386-8fda-aa5c95b6271f
+# ╠═9f68d823-64ac-48cc-b35e-b131a0bd5c50
 # ╠═22b67cb0-6687-11ec-1868-bb216a9703f4
